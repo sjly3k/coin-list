@@ -1,6 +1,6 @@
-import axios from "axios";
-import { useCallback } from "react";
+import { useAtom } from "jotai";
 import styled from "styled-components";
+import { coinsAtom } from "../lib/coins";
 import CoinItem from "./CoinItem";
 
 const CoinListBlock = styled.div`
@@ -14,17 +14,13 @@ const CoinTable = styled.table`
   border-collapse: collapse;
 `;
 
-const CoinList = ({ markets }) => {
-  const getCoin = useCallback(async ({ market }) => {
-    try {
-      const response = await axios.get(
-        `https://api.upbit.com/v1/ticker?markets=${market}`
-      );
-      return response.data;
-    } catch (e) {
-      console.log(e);
-    }
-  }, []);
+const CoinList = ({ coins }) => {
+  if (!coins)
+    return (
+      <CoinListBlock>
+        <div>loading....</div>
+      </CoinListBlock>
+    );
   return (
     <CoinListBlock>
       <CoinTable>
@@ -37,7 +33,9 @@ const CoinList = ({ markets }) => {
           <col width="*" />
         </colgroup>
         <tbody>
-          <CoinItem />
+          {coins.map((coin) => {
+            return <CoinItem coin={coin} key={coin.market} />;
+          })}
         </tbody>
       </CoinTable>
     </CoinListBlock>

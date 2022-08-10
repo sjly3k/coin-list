@@ -1,4 +1,7 @@
+import { useAtom } from "jotai";
 import styled, { css } from "styled-components";
+import { krwMarketsAtom, marketsAtom } from "../lib/coins";
+import { isKorAtom } from "../lib/util";
 
 const CoinItemBlock = styled.tr`
   em {
@@ -54,7 +57,7 @@ const CoinItemBlock = styled.tr`
   .tit {
     text-align: left;
     strong {
-      font-size: 13px;
+      font-size: 12px;
       word-break: break-all;
       display: block;
       margin: 2px 0 3px;
@@ -95,61 +98,99 @@ const CoinItemBlock = styled.tr`
     }
   }
 
-  ${(props) =>
-    props.up &&
+  ${({ change }) =>
+    change &&
     css`
       .price {
         strong {
-          color: #c84a31;
+          color: ${colors[change].color};
         }
       }
       .percent {
         p,
         em {
-          color: #c84a31;
+          color: ${colors[change].color};
         }
       }
       .cAlign {
         .bar {
           .line,
           .box {
-            background-color: #c84a31;
+            background-color: ${colors[change].color};
           }
         }
       }
     `}
 `;
 
-const CoinItem = ({ ...props }) => {
+const colors = {
+  EVEN: {
+    color: "#333",
+  },
+  RISE: {
+    color: "#c84a31",
+  },
+  FALL: {
+    color: "#1261c4",
+  },
+};
+
+const CoinItem = ({ coin }) => {
+  const {
+    change,
+    market,
+    opening_price,
+    high_price,
+    low_price,
+    trade_price,
+    prev_closing_price,
+    signed_change_price,
+    signed_change_rate,
+    acc_trade_price_24h,
+  } = coin;
+
+  const [markets] = useAtom(marketsAtom);
+  const [isKor] = useAtom(isKorAtom);
+
   return (
-    <CoinItemBlock {...props}>
+    <CoinItemBlock change={change}>
       <td></td>
       <td className="cAlign">
         <div className="bar">
-          <span className="line" style={{ top: 4.9132, height: 9 }}>
-            -
-          </span>
-          <span className="box" style={{ top: 7.4132, height: 6 }}>
-            -
-          </span>
+          <span className="line">-</span>
+          <span className="box">-</span>
         </div>
       </td>
       <td className="tit">
-        <strong>플로우</strong>
+        <strong>
+          {isKor
+            ? markets.find((el) => el.market === market).korean_name
+            : markets.find((el) => el.market === market).english_name}
+        </strong>
         <em>
-          BTC<span>/{"KRW"}</span>
+          {market.split("-")[1]}
+          <span>/{market.split("-")[0]}</span>
         </em>
       </td>
       <td className="price">
-        <strong>13,000</strong>
+        <strong>
+          {trade_price >= 100.0
+            ? Math.trunc(trade_price).toLocaleString("ko-KR")
+            : trade_price.toFixed(2)}
+        </strong>
       </td>
       <td className="percent">
-        <p>+14.5%</p>
-        <em>500</em>
+        <p>
+          {signed_change_rate >= 0
+            ? "+" + (signed_change_rate * 100).toFixed(2)
+            : (signed_change_rate * 100).toFixed(2)}
+          %
+        </p>
+        <em>{signed_change_price.toLocaleString("ko-KR")}</em>
       </td>
       <td className="rAlign">
         <p>
-          380,000
+          {Math.trunc(acc_trade_price_24h).toLocaleString("ko-KR").slice(0, -8)}
           <i>백만</i>
         </p>
       </td>

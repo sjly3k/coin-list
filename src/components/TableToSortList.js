@@ -1,5 +1,13 @@
+import { useAtom } from "jotai";
+import { useCallback } from "react";
 import { Link } from "react-router-dom";
 import styled from "styled-components";
+import {
+  accTradePriceSortAtom,
+  isKorAtom,
+  prevClosingPriceSortAtom,
+  tradePriceSortAtom,
+} from "../lib/util";
 
 const TableToSortListBlock = styled.table`
   width: 100%;
@@ -21,7 +29,31 @@ const TableToSortListBlock = styled.table`
   }
 `;
 
-const TableToSortList = () => {
+const TableToSortList = ({
+  sortByTradePrice,
+  sortByPrevClosingPrice,
+  sortByAccTradePrice,
+}) => {
+  const ORIGIN =
+    "https://cdn.upbit.com/upbit-web/images/ico_up_down.1add58d.png";
+  const DESCENDING =
+    "https://cdn.upbit.com/upbit-web/images/ico_up_down_2.80e5420.png";
+  const ASCENDING =
+    "https://cdn.upbit.com/upbit-web/images/ico_up_down_1.af5ac5a.png";
+
+  const [isKor, reverseLang] = useAtom(isKorAtom);
+  const [tradePriceSort] = useAtom(tradePriceSortAtom);
+  const [prevClosingPriceSort] = useAtom(prevClosingPriceSortAtom);
+  const [accTradePriceSort] = useAtom(accTradePriceSortAtom);
+
+  const changeLang = useCallback(
+    () => reverseLang(!isKor),
+    [isKor, reverseLang]
+  );
+  const onClick = () => {
+    changeLang();
+  };
+
   return (
     <TableToSortListBlock>
       <colgroup>
@@ -35,8 +67,8 @@ const TableToSortList = () => {
       <thead>
         <tr>
           <th colSpan="3">
-            <Link to="#">
-              한글명
+            <Link to="#" onClick={onClick}>
+              {isKor ? "한글명" : "영문명"}
               <img
                 src="https://cdn.upbit.com/upbit-web/images/ico_change.c6ad0e9.png"
                 alt="화살표"
@@ -44,28 +76,46 @@ const TableToSortList = () => {
             </Link>
           </th>
           <th>
-            <Link to="#">
+            <Link to="#" onClick={sortByTradePrice}>
               현재가
               <img
-                src="https://cdn.upbit.com/upbit-web/images/ico_up_down.1add58d.png"
+                src={
+                  tradePriceSort
+                    ? tradePriceSort === "ascending"
+                      ? ASCENDING
+                      : DESCENDING
+                    : ORIGIN
+                }
                 alt="화살표"
               />
             </Link>
           </th>
           <th>
-            <Link to="#">
+            <Link to="#" onClick={sortByPrevClosingPrice}>
               전일대비
               <img
-                src="https://cdn.upbit.com/upbit-web/images/ico_up_down.1add58d.png"
+                src={
+                  prevClosingPriceSort
+                    ? prevClosingPriceSort === "ascending"
+                      ? ASCENDING
+                      : DESCENDING
+                    : ORIGIN
+                }
                 alt="화살표"
               />
             </Link>
           </th>
           <th>
-            <Link to="#">
+            <Link to="#" onClick={sortByAccTradePrice}>
               거래대금
               <img
-                src="https://cdn.upbit.com/upbit-web/images/ico_up_down_2.80e5420.png"
+                src={
+                  accTradePriceSort
+                    ? accTradePriceSort === "ascending"
+                      ? ASCENDING
+                      : DESCENDING
+                    : ORIGIN
+                }
                 alt="화살표"
               />
             </Link>
