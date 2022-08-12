@@ -29,17 +29,19 @@ const TableToSortListBlock = styled.table`
   }
 `;
 
+// 이런 Constants 들은 외부로 빼는것도 좋을 것 같아~
+const ORIGIN =
+  "https://cdn.upbit.com/upbit-web/images/ico_up_down.1add58d.png";
+const DESCENDING =
+  "https://cdn.upbit.com/upbit-web/images/ico_up_down_2.80e5420.png";
+const ASCENDING =
+  "https://cdn.upbit.com/upbit-web/images/ico_up_down_1.af5ac5a.png";
+
 const TableToSortList = ({
   sortByTradePrice,
   sortByPrevClosingPrice,
   sortByAccTradePrice,
 }) => {
-  const ORIGIN =
-    "https://cdn.upbit.com/upbit-web/images/ico_up_down.1add58d.png";
-  const DESCENDING =
-    "https://cdn.upbit.com/upbit-web/images/ico_up_down_2.80e5420.png";
-  const ASCENDING =
-    "https://cdn.upbit.com/upbit-web/images/ico_up_down_1.af5ac5a.png";
 
   const [isKor, reverseLang] = useAtom(isKorAtom);
   const [tradePriceSort] = useAtom(tradePriceSortAtom);
