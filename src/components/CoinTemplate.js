@@ -3,6 +3,7 @@ import { useAtom } from "jotai";
 import { useCallback, useEffect, useState } from "react";
 import { Route, Routes } from "react-router-dom";
 import styled from "styled-components";
+import { useInterval } from "../hooks/useInterval";
 import { coinsAtom, marketsAtom } from "../lib/coins";
 import {
   accTradePriceSortAtom,
@@ -30,8 +31,9 @@ const CoinTemplate = () => {
     accTradePriceSortAtom
   );
 
-  const [firstSort, setFirstSort] = useState(true);
+  const [btcPrice, setBtcPrice] = useState(null);
   const [, setLoading] = useState(false);
+  const [temp, setTemp] = useState([]);
 
   const getMarkets = useCallback(async () => {
     setLoading(true);
@@ -44,16 +46,29 @@ const CoinTemplate = () => {
     setLoading(false);
   }, [setMarkets]);
 
-  /*
-  const setSubMarkets = useCallback(
-    (markets) => {
-      setKrwMarkets(markets.filter(({ market }) => market.startsWith("KRW")));
-      setBtcMarkets(markets.filter(({ market }) => market.startsWith("BTC")));
-      setUsdtMarkets(markets.filter(({ market }) => market.startsWith("USDT")));
-    },
-    [setKrwMarkets, setBtcMarkets, setUsdtMarkets]
-  );
-    */
+  const sortCoin = useCallback(() => {
+    const temp = [...coins];
+    if (tradePriceSort) {
+      if (tradePriceSort === "ascending") {
+        temp.sort((a, b) => a.trade_price - b.trade_price);
+      } else {
+        temp.sort((a, b) => b.trade_price - a.trade_price);
+      }
+    } else if (prevClosingPriceSort) {
+      if (prevClosingPriceSort === "ascending") {
+        temp.sort((a, b) => a.signed_change_rate - b.signed_change_rate);
+      } else {
+        temp.sort((a, b) => b.signed_change_rate - a.signed_change_rate);
+      }
+    } else {
+      if (accTradePriceSort === "ascending") {
+        temp.sort((a, b) => a.acc_trade_price_24h - b.acc_trade_price_24h);
+      } else {
+        temp.sort((a, b) => b.acc_trade_price_24h - a.acc_trade_price_24h);
+      }
+    }
+    setTemp((prev) => [...temp]);
+  }, [setTemp, coins, tradePriceSort, prevClosingPriceSort, accTradePriceSort]);
 
   const getCoins = useCallback(async () => {
     setLoading(true);
@@ -71,62 +86,49 @@ const CoinTemplate = () => {
     if (tradePriceSort) {
       if (tradePriceSort === "ascending") {
         setTradePriceSort("descending");
-        coins.sort((a, b) => b.trade_price - a.trade_price);
       } else {
         setTradePriceSort("ascending");
-        coins.sort((a, b) => a.trade_price - b.trade_price);
       }
     } else {
       setPrevClosingPriceSort(null);
       setAccTradePriceSort(null);
       setTradePriceSort("descending");
-      coins.sort((a, b) => b.trade_price - a.trade_price);
     }
+    sortCoin();
   };
   const sortByPrevClosingPrice = () => {
     if (prevClosingPriceSort) {
       if (prevClosingPriceSort === "ascending") {
         setPrevClosingPriceSort("descending");
-        coins.sort((a, b) => b.signed_change_rate - a.signed_change_rate);
       } else {
         setPrevClosingPriceSort("ascending");
-        coins.sort((a, b) => a.signed_change_rate - b.signed_change_rate);
       }
     } else {
       setTradePriceSort(null);
       setAccTradePriceSort(null);
       setPrevClosingPriceSort("descending");
-      coins.sort((a, b) => b.signed_change_rate - a.signed_change_rate);
     }
+    sortCoin();
   };
   const sortByAccTradePrice = () => {
     if (accTradePriceSort) {
       if (accTradePriceSort === "ascending") {
         setAccTradePriceSort("descending");
-        coins.sort((a, b) => b.acc_trade_price_24h - a.acc_trade_price_24h);
       } else {
         setAccTradePriceSort("ascending");
-        coins.sort((a, b) => a.acc_trade_price_24h - b.acc_trade_price_24h);
       }
     } else {
       setTradePriceSort(null);
       setPrevClosingPriceSort(null);
       setAccTradePriceSort("descending");
-      coins.sort((a, b) => b.acc_trade_price_24h - a.acc_trade_price_24h);
     }
+    sortCoin();
   };
 
   useEffect(() => {
     getMarkets();
   }, [getMarkets]);
-
-  /*
-  useEffect(() => {
-    if (markets) {
-      setSubMarkets(markets);
-    }
-  }, [markets, setSubMarkets]);
-  */
+  useInterval(getMarkets, 5000);
 
   useEffect(() => {
     if (markets) {
@@ -135,11 +137,11 @@ const CoinTemplate = () => {
   }, [markets, getCoins]);
 
   useEffect(() => {
-    if (firstSort && coins) {
-      setFirstSort(false);
-      coins.sort((a, b) => b.acc_trade_price_24h - a.acc_trade_price_24h);
+    if (coins) {
+      setBtcPrice(coins.find((coin) => coin.market === "KRW-BTC").trade_price);
+      sortCoin();
     }
-  }, [firstSort, setFirstSort, coins]);
+  }, [coins, setBtcPrice, sortCoin]);
 
   return (
     <CoinTemplateBlock>
@@ -155,7 +157,8 @@ const CoinTemplate = () => {
             path="/"
             element={
               <CoinList
-                coins={coins.filter(({ market }) => market.startsWith("KRW"))}
+                coins={temp.filter(({ market }) => market.startsWith("KRW"))}
+                price={1}
               />
             }
           />
@@ -163,7 +166,8 @@ const CoinTemplate = () => {
             path="/BTC"
             element={
               <CoinList
-                coins={coins.filter(({ market }) => market.startsWith("BTC"))}
+                coins={temp.filter(({ market }) => market.startsWith("BTC"))}
+                price={btcPrice}
               />
             }
           />
@@ -171,7 +175,8 @@ const CoinTemplate = () => {
             path="/USDT"
             element={
               <CoinList
-                coins={coins.filter(({ market }) => market.startsWith("USDT"))}
+                coins={temp.filter(({ market }) => market.startsWith("USDT"))}
+                price={1301.35}
               />
             }
           />

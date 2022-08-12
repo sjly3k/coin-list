@@ -1,6 +1,5 @@
-import { useAtom } from "jotai";
+import React from "react";
 import styled from "styled-components";
-import { coinsAtom } from "../lib/coins";
 import CoinItem from "./CoinItem";
 
 const CoinListBlock = styled.div`
@@ -14,7 +13,7 @@ const CoinTable = styled.table`
   border-collapse: collapse;
 `;
 
-const CoinList = ({ coins }) => {
+const CoinList = ({ coins, price }) => {
   if (!coins)
     return (
       <CoinListBlock>
@@ -34,7 +33,7 @@ const CoinList = ({ coins }) => {
         </colgroup>
         <tbody>
           {coins.map((coin) => {
-            return <CoinItem coin={coin} key={coin.market} />;
+            return <CoinItem coin={coin} key={coin.market} price={price} />;
           })}
         </tbody>
       </CoinTable>
@@ -42,4 +41,4 @@ const CoinList = ({ coins }) => {
   );
 };
 
-export default CoinList;
+export default React.memo(CoinList);

@@ -1,3 +1,4 @@
+import React from "react";
 import { NavLink as ReactRouterDomNavLink } from "react-router-dom";
 import styled from "styled-components";
 
@@ -51,4 +52,4 @@ const Header = () => {
   );
 };
 
-export default Header;
+export default React.memo(Header);
